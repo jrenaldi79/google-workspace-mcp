@@ -164,10 +164,59 @@ describe('MCP Server startup', () => {
 
 ### Runtime
 - `GOOGLE_WORKSPACE_MCP_HOME` - Override credential storage location (optional)
+- `LOG_LEVEL` - Logging level: ERROR, WARN, INFO (default), DEBUG
 - `NODE_ENV` - Development/production mode
 
 ### Development
 - (None required for local testing)
+
+## Logging & Debugging
+
+### Log Levels
+The project uses a structured logging system with four levels:
+
+- **ERROR** (0): Critical errors - always printed to console and file
+- **WARN** (1): Warnings - printed to console and file
+- **INFO** (2): General information (default) - file only
+- **DEBUG** (3): Detailed debugging - file only
+
+### Enable Debug Logging
+```bash
+# Method 1: Environment variable
+LOG_LEVEL=DEBUG npx @presto-ai/google-workspace-mcp
+
+# Method 2: CLI flag
+npx @presto-ai/google-workspace-mcp --debug
+
+# Method 3: When developing locally
+npm run build
+LOG_LEVEL=DEBUG node ./bin/cli.js --auth
+```
+
+### Log Files
+Logs are written to: `~/.config/google-workspace-mcp/logs/server.log`
+
+View logs:
+```bash
+tail -f ~/.config/google-workspace-mcp/logs/server.log
+```
+
+### Using Logger in Code
+```typescript
+import { error, warn, info, debug } from './utils/logger';
+
+// ERROR - always shown in console
+error('Failed to authenticate');
+
+// WARN - shown in console when LOG_LEVEL >= WARN
+warn('Retry attempt 3 of 5');
+
+// INFO - shown in file only (default)
+info('User authenticated successfully');
+
+// DEBUG - shown in file only when LOG_LEVEL=DEBUG
+debug('Token refresh in progress');
+```
 
 ## MCP Server Implementation
 

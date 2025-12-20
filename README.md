@@ -98,8 +98,28 @@ See [CLAUDE.md](./CLAUDE.md) for the complete list of available tools and their 
 # Override credential storage location (optional)
 export GOOGLE_WORKSPACE_MCP_HOME=/custom/path/for/credentials
 
-# Enable debug logging (optional)
-# Run server with --debug flag
+# Set logging level (optional, default: INFO)
+# Options: ERROR, WARN, INFO, DEBUG
+export LOG_LEVEL=DEBUG
+
+# Or use --debug flag for quick debug mode
+npx @presto-ai/google-workspace-mcp --debug
+```
+
+### Logging
+
+Logs are automatically written to `~/.config/google-workspace-mcp/logs/server.log` (macOS/Linux) or `%APPDATA%\google-workspace-mcp\logs\server.log` (Windows).
+
+**Log Levels:**
+- **ERROR**: Critical errors only (always shown in console + file)
+- **WARN**: Warnings and errors (shown in console + file)
+- **INFO**: General information, warnings, and errors (default, file only)
+- **DEBUG**: Detailed debugging information (file only)
+
+Enable debug logging to troubleshoot issues:
+```bash
+LOG_LEVEL=DEBUG npx @presto-ai/google-workspace-mcp
+# or
 npx @presto-ai/google-workspace-mcp --debug
 ```
 

@@ -64,6 +64,11 @@ function isInteractiveTerminal() {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Handle --debug flag to enable debug logging
+  if (args.includes('--debug')) {
+    process.env.LOG_LEVEL = 'DEBUG';
+  }
+
   // Explicit --auth flag always runs auth flow
   if (args.includes('--auth')) {
     console.log('🔐 Starting Google Workspace MCP authentication...\n');
