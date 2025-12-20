@@ -33,10 +33,17 @@ export async function runAuthFlow(): Promise<void> {
 
     console.log('Opening browser for Google authentication...');
     console.log('Please log in and grant the requested permissions.\n');
+    console.log('⚠️  Note: When you see the OAuth consent screen, you may need to click');
+    console.log('   "Advanced" and then "Go to @presto-ai/google-workspace-mcp (unsafe)"');
+    console.log('   because this application is not yet verified by Google.\n');
 
     logToFile('Starting authentication flow');
 
-    // Force re-authentication to get fresh credentials
+    // Force re-authentication by clearing any cached credentials first
+    // This ensures the browser auth flow is executed
+    await authManager.clearAuth();
+
+    // Now authenticate with a fresh flow
     // This will open the browser automatically
     const client = await authManager.getAuthenticatedClient();
 

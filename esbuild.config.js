@@ -16,7 +16,7 @@ async function build() {
       platform: 'node',
       target: 'node16',
       outdir: 'dist',
-      minify: false,
+      minify: true,
       sourcemap: true,
       // Replace 'open' package with our wrapper
       alias: {

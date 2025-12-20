@@ -155,33 +155,22 @@ export class AuthManager {
         }
 
         const webLogin = await this.authWithWeb(oAuth2Client);
-        console.error('\n[AUTH] About to call open() with URL:', webLogin.authUrl.substring(0, 50) + '...');
-        try {
-            const result = await open(webLogin.authUrl);
-            console.error('[AUTH] open() returned:', result);
-        } catch (openError) {
-            console.error('[AUTH] open() threw error:', openError);
-            throw openError;
-        }
-        console.error('[AUTH] Waiting for authentication...');
+        await open(webLogin.authUrl);
 
         // Add timeout to prevent infinite waiting when browser tab gets stuck
-        const authTimeout = 30 * 1000; // 30 second timeout (reduced from 5 minutes for debugging)
+        const authTimeout = 5 * 60 * 1000; // 5 minutes timeout
         const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
             reject(
             new Error(
-                'Authentication timed out after 30 seconds. No OAuth callback received. ' +
+                'Authentication timed out after 5 minutes. No OAuth callback received. ' +
                 'The browser may not have opened successfully. ' +
-                'Please check that a browser window opened and you completed the OAuth flow. ' +
-                'If no browser opened, try opening this URL manually in your browser.',
+                'Please check that a browser window opened and you completed the OAuth flow.',
             ),
             );
         }, authTimeout);
         });
-        console.error('[AUTH] Waiting for OAuth callback (30 second timeout)...');
         await Promise.race([webLogin.loginCompletePromise, timeoutPromise]);
-        console.error('[AUTH] OAuth callback received successfully');
 
         await OAuthCredentialStorage.saveCredentials(oAuth2Client.credentials);
         this.client = oAuth2Client;
