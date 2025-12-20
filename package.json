@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "NPM-distributable Google Workspace MCP server for Claude Desktop, Claude Code CLI, and Chatwise",
   "main": "dist/index.js",
-  "bin": {
-    "google-workspace-mcp": "./bin/cli.js"
-  },
+  "bin": "./bin/cli.js",
   "scripts": {
     "test": "node --max-old-space-size=4096 node_modules/jest/bin/jest.js --runInBand --verbose",
     "test:watch": "jest --watch",
@@ -34,7 +32,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jrenaldi79/google-workspace-mcp"
+    "url": "git+https://github.com/jrenaldi79/google-workspace-mcp.git"
   },
   "type": "commonjs",
   "files": [
