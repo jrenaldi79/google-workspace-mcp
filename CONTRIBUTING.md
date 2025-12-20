@@ -222,9 +222,12 @@ git push origin master
 # Update version in package.json
 npm version patch  # or minor/major
 
-# Publish
+# Publish (IMPORTANT: Run from your terminal, not from Claude Code)
+# 2FA authentication is required for the @presto-ai scope
 npm publish
 ```
+
+**⚠️ IMPORTANT**: The `npm publish` command must be run from **your terminal**, not from Claude Code CLI or automated tools. The @presto-ai scope requires 2FA (two-factor authentication), and npm will prompt you to authenticate using your security key or authenticator app—which can only be done interactively in a real terminal.
 
 ---
 
@@ -392,20 +395,26 @@ ls -la dist/
 
 ### Publishing to npm
 
+**⚠️ IMPORTANT**: Run these commands from **your terminal**, not from Claude Code. The 2FA authentication step requires interactive terminal input.
+
 ```bash
-# Ensure logged in
+# Ensure logged in to npm
 npm login
 
-# Build and publish
+# Build the package
 npm run build
-npm publish --access public
 
-# Verify
+# Publish to npm registry (MUST run in your terminal for 2FA)
+npm publish
+
+# Verify publication
 npm view @presto-ai/google-workspace-mcp
 
-# Test from npm
+# Test the published version
 npx @presto-ai/google-workspace-mcp --auth
 ```
+
+If publishing from your terminal, npm will prompt you to authenticate using your 2FA method (security key or authenticator app). Complete the authentication when prompted, and the package will be published successfully.
 
 ---
 

@@ -274,6 +274,17 @@ Use this checklist before publishing:
 - [ ] Test from multiple directories (different working dirs)
 - [ ] `npm unlink -g @presto-ai/google-workspace-mcp` removes link
 
+### Publishing to npm
+
+**⚠️ IMPORTANT**: Run `npm publish` from **your terminal**, not from Claude Code. The @presto-ai scope requires 2FA authentication, which cannot be handled by automated tools.
+
+```bash
+# From your terminal:
+npm publish
+```
+
+npm will prompt you to authenticate with your security key or authenticator app. Complete the 2FA authentication when prompted.
+
 ### Post-publish Testing (after npm publish)
 
 - [ ] `npx @presto-ai/google-workspace-mcp --auth` works
