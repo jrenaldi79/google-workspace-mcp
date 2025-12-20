@@ -8,7 +8,6 @@ import { execFile, ExecFileOptions } from 'node:child_process';
 import { platform } from 'node:os';
 import { URL } from 'node:url';
 
-
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timeoutId: NodeJS.Timeout;
   const timeout = new Promise<T>((_, reject) => {
@@ -35,12 +34,11 @@ function validateUrl(url: string): void {
 
   // Only allow HTTP and HTTPS protocols
   if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-    throw new Error(
-      `Unsafe protocol: ${parsedUrl.protocol}. Only HTTP and HTTPS are allowed.`
-    );
+    throw new Error(`Unsafe protocol: ${parsedUrl.protocol}. Only HTTP and HTTPS are allowed.`);
   }
 
   // Additional validation: ensure no newlines or control characters
+  // eslint-disable-next-line no-control-regex
   if (/[\r\n\x00-\x1F]/.test(url)) {
     throw new Error('URL contains invalid characters');
   }
@@ -116,18 +114,13 @@ export async function openBrowserSecurely(
 
   const tryCommand = (cmd: string, cmdArgs: string[]): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const child = execFileFn(
-        cmd,
-        cmdArgs,
-        options as ExecFileOptions,
-        (error) => {
-          if (error) {
-            // This callback handles errors after the process has run,
-            // but for our case, the 'error' event is more important for spawn failures.
-            reject(error);
-          }
+      const child = execFileFn(cmd, cmdArgs, options as ExecFileOptions, (error) => {
+        if (error) {
+          // This callback handles errors after the process has run,
+          // but for our case, the 'error' event is more important for spawn failures.
+          reject(error);
         }
-      );
+      });
 
       // The 'error' event is critical. It fires if the command cannot be found or spawned.
       child.on('error', (error) => {
@@ -152,18 +145,10 @@ export async function openBrowserSecurely(
   } catch (error) {
     // For Linux, try fallback commands if xdg-open fails
     if (
-      (platformName === 'linux' ||
-        platformName === 'freebsd' ||
-        platformName === 'openbsd') &&
+      (platformName === 'linux' || platformName === 'freebsd' || platformName === 'openbsd') &&
       command === 'xdg-open'
     ) {
-      const fallbackCommands = [
-        'gnome-open',
-        'kde-open',
-        'firefox',
-        'chromium',
-        'google-chrome',
-      ];
+      const fallbackCommands = ['gnome-open', 'kde-open', 'firefox', 'chromium', 'google-chrome'];
 
       for (const fallbackCommand of fallbackCommands) {
         try {
@@ -178,9 +163,7 @@ export async function openBrowserSecurely(
 
     // Re-throw the error if all attempts failed
     throw new Error(
-      `Failed to open browser: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`
+      `Failed to open browser: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }

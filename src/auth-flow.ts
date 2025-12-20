@@ -56,9 +56,7 @@ export async function runAuthFlow(): Promise<void> {
 
     console.log('\n✅ Authentication successful!');
     console.log('Tokens have been saved securely.');
-    console.log(
-      '\nYou can now use this server with your MCP client:',
-    );
+    console.log('\nYou can now use this server with your MCP client:');
     console.log('  npx -y @presto-ai/google-workspace-mcp\n');
 
     logToFile('Authentication flow completed successfully');

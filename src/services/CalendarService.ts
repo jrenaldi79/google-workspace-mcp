@@ -13,26 +13,33 @@ import { z } from 'zod';
 export class CalendarService {
   private primaryCalendarId: string | null = null;
 
-  constructor(private authManager: any) {
-  }
+  constructor(private authManager: any) {}
 
   private createValidationErrorResponse(error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Validation failed';
-    let helpMessage = 'Please use strict ISO 8601 format with seconds and timezone. Examples: 2024-01-15T10:30:00Z (UTC) or 2024-01-15T10:30:00-05:00 (EST)';
+    let helpMessage =
+      'Please use strict ISO 8601 format with seconds and timezone. Examples: 2024-01-15T10:30:00Z (UTC) or 2024-01-15T10:30:00-05:00 (EST)';
 
-    if (error instanceof z.ZodError && error.issues.some(issue => issue.path.includes('attendees') || issue.message.includes('email'))) {
+    if (
+      error instanceof z.ZodError &&
+      error.issues.some(
+        (issue) => issue.path.includes('attendees') || issue.message.includes('email')
+      )
+    ) {
       helpMessage = 'Please ensure all attendee emails are in a valid format.';
     }
 
     return {
-      content: [{
-        type: "text" as const,
-        text: JSON.stringify({
-          error: 'Invalid input format',
-          details: errorMessage,
-          help: helpMessage
-        })
-      }]
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'Invalid input format',
+            details: errorMessage,
+            help: helpMessage,
+          }),
+        },
+      ],
     };
   }
 
@@ -51,7 +58,7 @@ export class CalendarService {
     logToFile('Getting primary calendar ID...');
     const calendar = await this.getCalendar();
     const res = await calendar.calendarList.list();
-    const primaryCalendar = res.data.items?.find(c => c.primary);
+    const primaryCalendar = res.data.items?.find((c) => c.primary);
     if (primaryCalendar && primaryCalendar.id) {
       logToFile(`Found primary calendar: ${primaryCalendar.id}`);
       this.primaryCalendarId = primaryCalendar.id;
@@ -70,28 +77,40 @@ export class CalendarService {
       const res = await calendar.calendarList.list();
       logToFile(`Found ${res.data.items?.length} calendars.`);
       const calendars = res.data.items || [];
-      logToFile(`Returning calendar data: ${JSON.stringify(calendars.map(c => ({ id: c?.id, summary: c?.summary })))}`);
+      logToFile(
+        `Returning calendar data: ${JSON.stringify(calendars.map((c) => ({ id: c?.id, summary: c?.summary })))}`
+      );
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify(calendars.map(c => ({ id: c?.id, summary: c?.summary })))
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(calendars.map((c) => ({ id: c?.id, summary: c?.summary }))),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.list: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  createEvent = async (input: { calendarId?: string, summary: string, start: { dateTime: string }, end: { dateTime: string }, attendees?: string[] }) => {
+  createEvent = async (input: {
+    calendarId?: string;
+    summary: string;
+    start: { dateTime: string };
+    end: { dateTime: string };
+    attendees?: string[];
+  }) => {
     const { calendarId, summary, start, end, attendees } = input;
-    
+
     // Validate datetime formats
     try {
       iso8601DateTimeSchema.parse(start.dateTime);
@@ -102,8 +121,8 @@ export class CalendarService {
     } catch (error) {
       return this.createValidationErrorResponse(error);
     }
-    
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
     logToFile(`Creating event in calendar: ${finalCalendarId}`);
     logToFile(`Event summary: ${summary}`);
     logToFile(`Event start: ${start.dateTime}`);
@@ -114,7 +133,7 @@ export class CalendarService {
         summary,
         start,
         end,
-        attendees: attendees?.map(email => ({ email }))
+        attendees: attendees?.map((email) => ({ email })),
       };
       const calendar = await this.getCalendar();
       const res = await calendar.events.insert({
@@ -123,26 +142,39 @@ export class CalendarService {
       });
       logToFile(`Successfully created event: ${res.data.id}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify(res.data)
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(res.data),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.createEvent: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  listEvents = async (input: { calendarId?: string, timeMin?: string, timeMax?: string, attendeeResponseStatus?: string[] }) => {
-    const { calendarId, timeMin = (new Date()).toISOString(), attendeeResponseStatus = ['accepted', 'tentative', 'needsAction'] } = input;
-    
+  listEvents = async (input: {
+    calendarId?: string;
+    timeMin?: string;
+    timeMax?: string;
+    attendeeResponseStatus?: string[];
+  }) => {
+    const {
+      calendarId,
+      timeMin = new Date().toISOString(),
+      attendeeResponseStatus = ['accepted', 'tentative', 'needsAction'],
+    } = input;
+
     let timeMax = input.timeMax;
     if (!timeMax) {
       const thirtyDaysFromNow = new Date();
@@ -150,7 +182,7 @@ export class CalendarService {
       timeMax = thirtyDaysFromNow.toISOString();
     }
 
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
     logToFile(`Listing events for calendar: ${finalCalendarId}`);
     try {
       const calendar = await this.getCalendar();
@@ -163,15 +195,15 @@ export class CalendarService {
       });
 
       const events = res.data.items
-        ?.filter(event => event.status !== 'cancelled' && !!event.summary)
-        .filter(event => {
+        ?.filter((event) => event.status !== 'cancelled' && !!event.summary)
+        .filter((event) => {
           if (!event.attendees || event.attendees.length === 0) {
             return true; // No attendees, so we can't filter, include it
           }
           if (event.attendees.length === 1 && event.attendees[0].self) {
             return true; // I'm the only one, always include it
           }
-          const self = event.attendees.find(a => a.self);
+          const self = event.attendees.find((a) => a.self);
           if (!self) {
             return true; // We are not an attendee, include it
           }
@@ -180,26 +212,30 @@ export class CalendarService {
 
       logToFile(`Found ${events?.length} events after filtering.`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify(events)
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(events),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.listEvents: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  getEvent = async (input: { eventId: string, calendarId?: string }) => {
+  getEvent = async (input: { eventId: string; calendarId?: string }) => {
     const { eventId, calendarId } = input;
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
     logToFile(`Getting event ${eventId} from calendar: ${finalCalendarId}`);
     try {
       const calendar = await this.getCalendar();
@@ -209,26 +245,32 @@ export class CalendarService {
       });
       logToFile(`Successfully retrieved event: ${res.data.id}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify(res.data)
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(res.data),
+          },
+        ],
       };
     } catch (error) {
-      const errorMessage = (error as any).response?.data?.error?.message || (error instanceof Error ? error.message : String(error));
+      const errorMessage =
+        (error as any).response?.data?.error?.message ||
+        (error instanceof Error ? error.message : String(error));
       logToFile(`Error during calendar.getEvent: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  deleteEvent = async (input: { eventId: string, calendarId?: string }) => {
+  deleteEvent = async (input: { eventId: string; calendarId?: string }) => {
     const { eventId, calendarId } = input;
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
     logToFile(`Deleting event ${eventId} from calendar: ${finalCalendarId}`);
 
     try {
@@ -240,24 +282,37 @@ export class CalendarService {
 
       logToFile(`Successfully deleted event: ${eventId}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ message: `Successfully deleted event ${eventId}` })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ message: `Successfully deleted event ${eventId}` }),
+          },
+        ],
       };
     } catch (error) {
-      const errorMessage = (error as any).response?.data?.error?.message || (error instanceof Error ? error.message : String(error));
+      const errorMessage =
+        (error as any).response?.data?.error?.message ||
+        (error instanceof Error ? error.message : String(error));
       logToFile(`Error during calendar.deleteEvent: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  updateEvent = async (input: { eventId: string, calendarId?: string, summary?: string, start?: { dateTime: string }, end?: { dateTime: string }, attendees?: string[] }) => {
+  updateEvent = async (input: {
+    eventId: string;
+    calendarId?: string;
+    summary?: string;
+    start?: { dateTime: string };
+    end?: { dateTime: string };
+    attendees?: string[];
+  }) => {
     const { eventId, calendarId, summary, start, end, attendees } = input;
 
     // Validate datetime formats if provided
@@ -275,18 +330,18 @@ export class CalendarService {
       return this.createValidationErrorResponse(error);
     }
 
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
     logToFile(`Updating event ${eventId} in calendar: ${finalCalendarId}`);
 
     try {
       const calendar = await this.getCalendar();
-      
+
       // Build request body with only the fields to update (patch semantics)
       const requestBody: calendar_v3.Schema$Event = {};
       if (summary !== undefined) requestBody.summary = summary;
       if (start) requestBody.start = start;
       if (end) requestBody.end = end;
-      if (attendees) requestBody.attendees = attendees.map(email => ({ email }));
+      if (attendees) requestBody.attendees = attendees.map((email) => ({ email }));
 
       const res = await calendar.events.update({
         calendarId: finalCalendarId,
@@ -296,28 +351,40 @@ export class CalendarService {
 
       logToFile(`Successfully updated event: ${res.data.id}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify(res.data)
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(res.data),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.updateEvent: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  respondToEvent = async (input: { eventId: string, calendarId?: string, responseStatus: 'accepted' | 'declined' | 'tentative', sendNotification?: boolean, responseMessage?: string }) => {
+  respondToEvent = async (input: {
+    eventId: string;
+    calendarId?: string;
+    responseStatus: 'accepted' | 'declined' | 'tentative';
+    sendNotification?: boolean;
+    responseMessage?: string;
+  }) => {
     const { eventId, calendarId, responseStatus, sendNotification = true, responseMessage } = input;
-    const finalCalendarId = calendarId || await this.getPrimaryCalendarId();
+    const finalCalendarId = calendarId || (await this.getPrimaryCalendarId());
 
-    logToFile(`Responding to event ${eventId} in calendar: ${finalCalendarId} with status: ${responseStatus}`);
+    logToFile(
+      `Responding to event ${eventId} in calendar: ${finalCalendarId} with status: ${responseStatus}`
+    );
     if (responseMessage) {
       logToFile(`Response message: ${responseMessage}`);
     }
@@ -334,22 +401,26 @@ export class CalendarService {
       if (!event.data.attendees || event.data.attendees.length === 0) {
         logToFile('Event has no attendees');
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ error: 'Event has no attendees' })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ error: 'Event has no attendees' }),
+            },
+          ],
         };
       }
 
       // Find the current user's attendee entry
-      const selfAttendee = event.data.attendees.find(a => a.self === true);
+      const selfAttendee = event.data.attendees.find((a) => a.self === true);
       if (!selfAttendee) {
         logToFile('User is not an attendee of this event');
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ error: 'You are not an attendee of this event' })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ error: 'You are not an attendee of this event' }),
+            },
+          ],
         };
       }
 
@@ -365,36 +436,45 @@ export class CalendarService {
         eventId,
         sendNotifications: sendNotification,
         requestBody: {
-          attendees: event.data.attendees
-        }
+          attendees: event.data.attendees,
+        },
       });
 
       logToFile(`Successfully responded to event: ${res.data.id} with status: ${responseStatus}`);
 
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({
-            eventId: res.data.id,
-            summary: res.data.summary,
-            responseStatus,
-            message: `Successfully ${responseStatus} the meeting invitation${responseMessage ? ' with message' : ''}`
-          })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({
+              eventId: res.data.id,
+              summary: res.data.summary,
+              responseStatus,
+              message: `Successfully ${responseStatus} the meeting invitation${responseMessage ? ' with message' : ''}`,
+            }),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.respondToEvent: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 
-  findFreeTime = async (input: { attendees: string[], timeMin: string, timeMax: string, duration: number }) => {
+  findFreeTime = async (input: {
+    attendees: string[];
+    timeMin: string;
+    timeMax: string;
+    duration: number;
+  }) => {
     const { attendees, timeMin, timeMax, duration } = input;
 
     // Validate datetime formats
@@ -412,13 +492,15 @@ export class CalendarService {
 
     try {
       const calendar = await this.getCalendar();
-      const items = await Promise.all(attendees.map(async (email) => {
-        if (email === 'me') {
-          const primaryId = await this.getPrimaryCalendarId();
-          return { id: primaryId };
-        }
-        return { id: email };
-      }));
+      const items = await Promise.all(
+        attendees.map(async (email) => {
+          if (email === 'me') {
+            const primaryId = await this.getPrimaryCalendarId();
+            return { id: primaryId };
+          }
+          return { id: email };
+        })
+      );
 
       const res = await calendar.freebusy.query({
         requestBody: {
@@ -428,23 +510,28 @@ export class CalendarService {
         },
       });
 
-      const busyTimes = Object.values(res.data.calendars || {}).flatMap(cal => cal.busy || []);
+      const busyTimes = Object.values(res.data.calendars || {}).flatMap((cal) => cal.busy || []);
       if (busyTimes.length === 0) {
         logToFile('No busy times found, returning the start of the time range.');
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ start: timeMin, end: new Date(new Date(timeMin).getTime() + duration * 60000).toISOString() })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({
+                start: timeMin,
+                end: new Date(new Date(timeMin).getTime() + duration * 60000).toISOString(),
+              }),
+            },
+          ],
         };
       }
 
       // Sort and merge overlapping busy intervals for better performance
       const sortedBusyTimes = busyTimes
-        .filter(busy => busy.start && busy.end)
-        .map(busy => ({
+        .filter((busy) => busy.start && busy.end)
+        .map((busy) => ({
           start: new Date(busy.start!).getTime(),
-          end: new Date(busy.end!).getTime()
+          end: new Date(busy.end!).getTime(),
         }))
         .sort((a, b) => a.start - b.start);
 
@@ -472,10 +559,12 @@ export class CalendarService {
         const slotEnd = new Date(startTime + durationMs);
         logToFile(`No busy times, found free time: ${timeMin} - ${slotEnd.toISOString()}`);
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ start: timeMin, end: slotEnd.toISOString() })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ start: timeMin, end: slotEnd.toISOString() }),
+            },
+          ],
         };
       }
 
@@ -484,10 +573,12 @@ export class CalendarService {
         const slotEnd = new Date(startTime + durationMs);
         logToFile(`Found free time: ${timeMin} - ${slotEnd.toISOString()}`);
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ start: timeMin, end: slotEnd.toISOString() })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ start: timeMin, end: slotEnd.toISOString() }),
+            },
+          ],
         };
       }
 
@@ -495,16 +586,21 @@ export class CalendarService {
       for (let i = 0; i < mergedBusyTimes.length - 1; i++) {
         const gapStart = mergedBusyTimes[i].end;
         const gapEnd = mergedBusyTimes[i + 1].start;
-        
+
         if (gapEnd - gapStart >= durationMs) {
           const slotStart = new Date(gapStart);
           const slotEnd = new Date(gapStart + durationMs);
           logToFile(`Found free time: ${slotStart.toISOString()} - ${slotEnd.toISOString()}`);
           return {
-            content: [{
-              type: "text" as const,
-              text: JSON.stringify({ start: slotStart.toISOString(), end: slotEnd.toISOString() })
-            }]
+            content: [
+              {
+                type: 'text' as const,
+                text: JSON.stringify({
+                  start: slotStart.toISOString(),
+                  end: slotEnd.toISOString(),
+                }),
+              },
+            ],
           };
         }
       }
@@ -516,29 +612,35 @@ export class CalendarService {
         const slotEnd = new Date(lastBusyEnd + durationMs);
         logToFile(`Found free time: ${slotStart.toISOString()} - ${slotEnd.toISOString()}`);
         return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({ start: slotStart.toISOString(), end: slotEnd.toISOString() })
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ start: slotStart.toISOString(), end: slotEnd.toISOString() }),
+            },
+          ],
         };
       }
 
       logToFile('No available free time found');
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: 'No available free time found' })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: 'No available free time found' }),
+          },
+        ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logToFile(`Error during calendar.findFreeTime: ${errorMessage}`);
       return {
-        content: [{
-          type: "text" as const,
-          text: JSON.stringify({ error: errorMessage })
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: errorMessage }),
+          },
+        ],
       };
     }
-  }
+  };
 }

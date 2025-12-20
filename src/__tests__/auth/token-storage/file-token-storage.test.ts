@@ -4,23 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  jest,
-} from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import * as crypto from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
 import { FileTokenStorage } from '../../../auth/token-storage/file-token-storage';
 import type { OAuthCredentials } from '../../../auth/token-storage/types';
-import {
-  ENCRYPTED_TOKEN_PATH,
-  ENCRYPTION_MASTER_KEY_PATH,
-} from '../../../utils/paths';
+import { ENCRYPTED_TOKEN_PATH, ENCRYPTION_MASTER_KEY_PATH } from '../../../utils/paths';
 
 jest.mock('node:fs', () => ({
   promises: {
@@ -76,7 +66,7 @@ describe('FileTokenStorage', () => {
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         ENCRYPTION_MASTER_KEY_PATH,
         expect.any(Buffer),
-        { mode: 0o600 },
+        { mode: 0o600 }
       );
     });
   });
@@ -118,7 +108,7 @@ describe('FileTokenStorage', () => {
       };
 
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ 'test-server': credentials }),
+        JSON.stringify({ 'test-server': credentials })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
 
@@ -138,7 +128,7 @@ describe('FileTokenStorage', () => {
       };
 
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ 'test-server': credentials }),
+        JSON.stringify({ 'test-server': credentials })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
 
@@ -163,7 +153,7 @@ describe('FileTokenStorage', () => {
     });
     it('should save credentials with encryption', async () => {
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ 'existing-server': existingCredentials }),
+        JSON.stringify({ 'existing-server': existingCredentials })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
       mockFs.mkdir.mockResolvedValue(undefined);
@@ -180,10 +170,10 @@ describe('FileTokenStorage', () => {
 
       await storage.setCredentials(credentials);
 
-      expect(mockFs.mkdir).toHaveBeenCalledWith(
-        path.dirname(ENCRYPTED_TOKEN_PATH),
-        { recursive: true, mode: 0o700 },
-      );
+      expect(mockFs.mkdir).toHaveBeenCalledWith(path.dirname(ENCRYPTED_TOKEN_PATH), {
+        recursive: true,
+        mode: 0o700,
+      });
       expect(mockFs.writeFile).toHaveBeenCalled();
 
       const writeCall = mockFs.writeFile.mock.calls[0];
@@ -194,7 +184,7 @@ describe('FileTokenStorage', () => {
 
     it('should update existing credentials', async () => {
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ 'existing-server': existingCredentials }),
+        JSON.stringify({ 'existing-server': existingCredentials })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
       mockFs.writeFile.mockResolvedValue(undefined);
@@ -231,7 +221,7 @@ describe('FileTokenStorage', () => {
       mockFs.readFile.mockRejectedValue({ code: 'ENOENT' });
 
       await expect(storage.deleteCredentials('test-server')).rejects.toThrow(
-        'No credentials found for test-server',
+        'No credentials found for test-server'
       );
     });
 
@@ -246,7 +236,7 @@ describe('FileTokenStorage', () => {
       };
 
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ 'test-server': credentials }),
+        JSON.stringify({ 'test-server': credentials })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
       mockFs.unlink.mockResolvedValue(undefined);
@@ -276,7 +266,7 @@ describe('FileTokenStorage', () => {
       };
 
       const encryptedData = (storage as any).encrypt(
-        JSON.stringify({ server1: credentials1, server2: credentials2 }),
+        JSON.stringify({ server1: credentials1, server2: credentials2 })
       );
       mockFs.readFile.mockResolvedValue(encryptedData);
       mockFs.writeFile.mockResolvedValue(undefined);
@@ -323,9 +313,7 @@ describe('FileTokenStorage', () => {
         },
       };
 
-      const encryptedData = (storage as any).encrypt(
-        JSON.stringify(credentials),
-      );
+      const encryptedData = (storage as any).encrypt(JSON.stringify(credentials));
       mockFs.readFile.mockResolvedValue(encryptedData);
 
       const result = await storage.listServers();
@@ -384,7 +372,7 @@ describe('FileTokenStorage', () => {
 
     it('should throw on invalid encrypted data format', () => {
       expect(() => (storage as any).decrypt('invalid-data')).toThrow(
-        'Invalid encrypted data format',
+        'Invalid encrypted data format'
       );
     });
   });

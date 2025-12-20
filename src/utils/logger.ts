@@ -6,7 +6,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { CONFIG_DIR } from './paths';
+import * as os from 'node:os';
 
 // Log levels in order of severity
 export enum LogLevel {
@@ -33,8 +33,21 @@ function parseLogLevel(): LogLevel {
   }
 }
 
+// Get config directory with fallback
+function getConfigDir(): string {
+  try {
+    // Lazy import to avoid circular dependency
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
+    const { CONFIG_DIR } = require('./paths');
+    return CONFIG_DIR || path.join(os.homedir(), '.config', 'google-workspace-mcp');
+  } catch (_) {
+    void _;
+    return path.join(os.homedir(), '.config', 'google-workspace-mcp');
+  }
+}
+
 let currentLogLevel = parseLogLevel();
-const logFilePath = path.join(CONFIG_DIR, 'logs', 'server.log');
+const logFilePath = path.join(getConfigDir(), 'logs', 'server.log');
 
 async function ensureLogDirectoryExists() {
   try {
@@ -74,7 +87,7 @@ function writeLog(level: LogLevel, levelName: string, message: string) {
   const logMessage = formatLogMessage(levelName, message);
 
   // Write to file
-  fs.appendFile(logFilePath, logMessage + '\n').catch(err => {
+  fs.appendFile(logFilePath, logMessage + '\n').catch((err) => {
     // Fallback to console if file logging fails
     console.error('Failed to write to log file:', err);
   });

@@ -175,7 +175,7 @@ describe('DriveService', () => {
       });
 
       const result = await driveService.search({
-        query: "My Document",
+        query: 'My Document',
         pageSize: 20,
       });
 
@@ -331,9 +331,7 @@ describe('DriveService', () => {
     });
 
     it('should use pagination token', async () => {
-      const mockFiles = [
-        { id: 'file3', name: 'Page2Doc.pdf' },
-      ];
+      const mockFiles = [{ id: 'file3', name: 'Page2Doc.pdf' }];
 
       mockDriveAPI.files.list.mockResolvedValue({
         data: {
@@ -486,7 +484,11 @@ describe('DriveService', () => {
     });
 
     it('should handle Google Docs URLs', async () => {
-      const mockFile = { id: 'doc789', name: 'My Document', mimeType: 'application/vnd.google-apps.document' };
+      const mockFile = {
+        id: 'doc789',
+        name: 'My Document',
+        mimeType: 'application/vnd.google-apps.document',
+      };
 
       mockDriveAPI.files.get.mockResolvedValue({
         data: mockFile,
@@ -515,18 +517,24 @@ describe('DriveService', () => {
       });
 
       const responseData = JSON.parse(result.content[0].text);
-      expect(responseData.error).toBe('Invalid Drive URL. Please provide a valid Google Drive URL or a search query.');
-      expect(responseData.details).toBe('Could not extract file or folder ID from the provided URL.');
+      expect(responseData.error).toBe(
+        'Invalid Drive URL. Please provide a valid Google Drive URL or a search query.'
+      );
+      expect(responseData.details).toBe(
+        'Could not extract file or folder ID from the provided URL.'
+      );
 
       // Should not call the API for invalid URLs
       expect(mockDriveAPI.files.list).not.toHaveBeenCalled();
     });
 
     it('should handle folder URLs with id parameter', async () => {
-      const mockFolder = { id: 'folder789', name: 'My Folder', mimeType: 'application/vnd.google-apps.folder' };
-      const mockFiles = [
-        { id: 'file1', name: 'Document.pdf', mimeType: 'application/pdf' },
-      ];
+      const mockFolder = {
+        id: 'folder789',
+        name: 'My Folder',
+        mimeType: 'application/vnd.google-apps.folder',
+      };
+      const mockFiles = [{ id: 'file1', name: 'Document.pdf', mimeType: 'application/pdf' }];
 
       mockDriveAPI.files.get.mockResolvedValue({
         data: mockFolder,
@@ -561,11 +569,13 @@ describe('DriveService', () => {
     it('should handle file URLs with id parameter', async () => {
       const mockFile = { id: 'file123', name: 'My File.pdf', mimeType: 'application/pdf' };
 
-      mockDriveAPI.files.get.mockResolvedValueOnce({
-        data: { mimeType: 'application/pdf' },
-      }).mockResolvedValueOnce({
-        data: mockFile,
-      });
+      mockDriveAPI.files.get
+        .mockResolvedValueOnce({
+          data: { mimeType: 'application/pdf' },
+        })
+        .mockResolvedValueOnce({
+          data: mockFile,
+        });
 
       const result = await driveService.search({
         query: 'https://drive.google.com/drive?id=file123',
@@ -589,7 +599,11 @@ describe('DriveService', () => {
     it('should handle raw Drive IDs as folder queries', async () => {
       const mockFiles = [
         { id: 'file1', name: 'Document.pdf', mimeType: 'application/pdf' },
-        { id: 'file2', name: 'Spreadsheet.xlsx', mimeType: 'application/vnd.google-apps.spreadsheet' },
+        {
+          id: 'file2',
+          name: 'Spreadsheet.xlsx',
+          mimeType: 'application/vnd.google-apps.spreadsheet',
+        },
       ];
 
       mockDriveAPI.files.list.mockResolvedValue({
@@ -615,60 +629,37 @@ describe('DriveService', () => {
       expect(responseData.files).toEqual(mockFiles);
     });
 
-        it('should not wrap a valid query in full-text search', async () => {
+    it('should not wrap a valid query in full-text search', async () => {
+      const mockFiles = [{ id: 'file1', name: 'My File.pdf', mimeType: 'application/pdf' }];
 
-          const mockFiles = [
+      mockDriveAPI.files.list.mockResolvedValue({
+        data: {
+          files: mockFiles,
+        },
+      });
 
-            { id: 'file1', name: 'My File.pdf', mimeType: 'application/pdf' },
+      const result = await driveService.search({
+        query: "'me' in owners",
 
-          ];
+        pageSize: 10,
+      });
 
-    
+      expect(mockDriveAPI.files.list).toHaveBeenCalledWith({
+        q: "'me' in owners",
 
-          mockDriveAPI.files.list.mockResolvedValue({
+        pageSize: 10,
 
-            data: {
+        pageToken: undefined,
 
-              files: mockFiles,
+        corpus: undefined,
 
-            },
+        fields: 'nextPageToken, files(id, name, modifiedTime, viewedByMeTime, mimeType, parents)',
+      });
 
-          });
+      const responseData = JSON.parse(result.content[0].text);
 
-    
-
-          const result = await driveService.search({
-
-            query: "'me' in owners",
-
-            pageSize: 10,
-
-          });
-
-    
-
-          expect(mockDriveAPI.files.list).toHaveBeenCalledWith({
-
-            q: "'me' in owners",
-
-            pageSize: 10,
-
-            pageToken: undefined,
-
-            corpus: undefined,
-
-            fields: 'nextPageToken, files(id, name, modifiedTime, viewedByMeTime, mimeType, parents)',
-
-          });
-
-    
-
-          const responseData = JSON.parse(result.content[0].text);
-
-          expect(responseData.files).toEqual(mockFiles);
-
-        });
-
+      expect(responseData.files).toEqual(mockFiles);
+    });
   });
 
   describe('downloadFile', () => {
@@ -680,16 +671,19 @@ describe('DriveService', () => {
 
       mockDriveAPI.files.get.mockImplementation((params: any) => {
         if (params.alt === 'media') {
-            return Promise.resolve({
-                data: mockBuffer,
-            });
+          return Promise.resolve({
+            data: mockBuffer,
+          });
         }
         return Promise.resolve({
-            data: { id: mockFileId, name: 'test.txt', mimeType: 'text/plain' },
+          data: { id: mockFileId, name: 'test.txt', mimeType: 'text/plain' },
         });
       });
 
-      const result = await driveService.downloadFile({ fileId: mockFileId, localPath: mockLocalPath });
+      const result = await driveService.downloadFile({
+        fileId: mockFileId,
+        localPath: mockLocalPath,
+      });
 
       expect(mockDriveAPI.files.get).toHaveBeenCalledWith({
         fileId: mockFileId,
@@ -716,7 +710,9 @@ describe('DriveService', () => {
 
       const result = await driveService.downloadFile({ fileId: mockFileId, localPath: 'any' });
 
-      expect(result.content[0].text).toContain("This is a Google Doc. Direct download is not supported. Please use the 'docs.getText' tool with documentId: doc-id");
+      expect(result.content[0].text).toContain(
+        "This is a Google Doc. Direct download is not supported. Please use the 'docs.getText' tool with documentId: doc-id"
+      );
       expect(mockDriveAPI.files.get).toHaveBeenCalledTimes(1);
     });
 

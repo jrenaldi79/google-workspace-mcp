@@ -1,12 +1,41 @@
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @type {import('jest').Config} */
 module.exports = {
-  // This workspace's tests are configured in the root jest.config.js
-  // as part of the 'projects' array. This file is kept for backwards
-  // compatibility and workspace-specific overrides if needed.
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
+  moduleFileExtensions: ['ts', 'js', 'json'],
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        esModuleInterop: true,
+        skipLibCheck: true,
+        strict: false,
+        rootDir: './src',
+        lib: ['es2020', 'dom'],
+        target: 'es2020',
+      },
+    },
+  },
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          esModuleInterop: true,
+          skipLibCheck: true,
+          strict: false,
+          rootDir: './src',
+          lib: ['es2020', 'dom'],
+          target: 'es2020',
+          module: 'commonjs',
+        },
+      },
+    ],
+  },
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/**/__tests__/**'],
+  coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  testTimeout: 10000,
 };

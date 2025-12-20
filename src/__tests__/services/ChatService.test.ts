@@ -179,9 +179,7 @@ describe('ChatService', () => {
         { name: 'spaces/space1', displayName: 'Other Chat' },
         { name: 'spaces/space2', displayName: 'Another Chat' },
       ];
-      const mockSpacesPage2 = [
-        { name: 'spaces/space3', displayName: 'Team Chat' },
-      ];
+      const mockSpacesPage2 = [{ name: 'spaces/space3', displayName: 'Team Chat' }];
 
       mockChatAPI.spaces.list
         .mockResolvedValueOnce({
@@ -208,9 +206,7 @@ describe('ChatService', () => {
     it('should return error when space not found', async () => {
       mockChatAPI.spaces.list.mockResolvedValue({
         data: {
-          spaces: [
-            { name: 'spaces/space1', displayName: 'Other Chat' },
-          ],
+          spaces: [{ name: 'spaces/space1', displayName: 'Other Chat' }],
         },
       });
 
@@ -255,9 +251,7 @@ describe('ChatService', () => {
       const mockPerson = {
         data: {
           metadata: {
-            sources: [
-              { type: 'PROFILE', id: 'user123' },
-            ],
+            sources: [{ type: 'PROFILE', id: 'user123' }],
           },
         },
       };
@@ -269,9 +263,7 @@ describe('ChatService', () => {
         },
       ];
 
-      const mockMessages = [
-        { name: 'spaces/space1/messages/msg1', text: 'Unread message' },
-      ];
+      const mockMessages = [{ name: 'spaces/space1/messages/msg1', text: 'Unread message' }];
 
       mockPeopleAPI.people.get.mockResolvedValue(mockPerson);
       mockChatAPI.spaces.members.list.mockResolvedValue({
@@ -309,9 +301,7 @@ describe('ChatService', () => {
       const mockPerson = {
         data: {
           metadata: {
-            sources: [
-              { type: 'PROFILE', id: 'user123' },
-            ],
+            sources: [{ type: 'PROFILE', id: 'user123' }],
           },
         },
       };
@@ -356,9 +346,7 @@ describe('ChatService', () => {
     });
 
     it('should pass orderBy to the API', async () => {
-      const mockMessages = [
-        { name: 'spaces/space1/messages/msg1', text: 'Hello' },
-      ];
+      const mockMessages = [{ name: 'spaces/space1/messages/msg1', text: 'Hello' }];
 
       mockChatAPI.spaces.messages.list.mockResolvedValue({
         data: {
@@ -383,9 +371,7 @@ describe('ChatService', () => {
     });
 
     it('should filter messages by threadName', async () => {
-      const mockMessages = [
-        { name: 'spaces/space1/messages/msg1', text: 'Hello' },
-      ];
+      const mockMessages = [{ name: 'spaces/space1/messages/msg1', text: 'Hello' }];
 
       mockChatAPI.spaces.messages.list.mockResolvedValue({
         data: {
@@ -412,9 +398,7 @@ describe('ChatService', () => {
       const mockPerson = {
         data: {
           metadata: {
-            sources: [
-              { type: 'PROFILE', id: 'user123' },
-            ],
+            sources: [{ type: 'PROFILE', id: 'user123' }],
           },
         },
       };

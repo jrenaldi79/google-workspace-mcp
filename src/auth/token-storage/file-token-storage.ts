@@ -11,10 +11,7 @@ import * as crypto from 'node:crypto';
 import { BaseTokenStorage } from './base-token-storage';
 import type { OAuthCredentials } from './types';
 import { logToFile } from '../../utils/logger';
-import {
-  ENCRYPTED_TOKEN_PATH,
-  ENCRYPTION_MASTER_KEY_PATH,
-} from '../../utils/paths';
+import { ENCRYPTED_TOKEN_PATH, ENCRYPTION_MASTER_KEY_PATH } from '../../utils/paths';
 
 export class FileTokenStorage extends BaseTokenStorage {
   private readonly tokenFilePath: string;
@@ -49,9 +46,7 @@ export class FileTokenStorage extends BaseTokenStorage {
   }
 
   private deriveEncryptionKey(): Buffer {
-    const salt = `${os.hostname()}-${
-      os.userInfo().username
-    }-gemini-cli-workspace`;
+    const salt = `${os.hostname()}-${os.userInfo().username}-gemini-cli-workspace`;
     return crypto.scryptSync(this.masterKey, salt, 32);
   }
 
@@ -77,11 +72,7 @@ export class FileTokenStorage extends BaseTokenStorage {
     const authTag = Buffer.from(parts[1], 'hex');
     const encrypted = parts[2];
 
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      this.encryptionKey,
-      iv,
-    );
+    const decipher = crypto.createDecipheriv('aes-256-gcm', this.encryptionKey, iv);
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
@@ -109,9 +100,7 @@ export class FileTokenStorage extends BaseTokenStorage {
       }
       if (
         err.message?.includes('Invalid encrypted data format') ||
-        err.message?.includes(
-          'Unsupported state or unable to authenticate data',
-        )
+        err.message?.includes('Unsupported state or unable to authenticate data')
       ) {
         logToFile('Token file corrupted');
         return new Map<string, OAuthCredentials>();
@@ -120,9 +109,7 @@ export class FileTokenStorage extends BaseTokenStorage {
     }
   }
 
-  private async saveTokens(
-    tokens: Map<string, OAuthCredentials>,
-  ): Promise<void> {
+  private async saveTokens(tokens: Map<string, OAuthCredentials>): Promise<void> {
     await this.ensureDirectoryExists();
 
     const data = Object.fromEntries(tokens);
@@ -139,8 +126,6 @@ export class FileTokenStorage extends BaseTokenStorage {
     if (!credentials) {
       return null;
     }
-
-
 
     return credentials;
   }

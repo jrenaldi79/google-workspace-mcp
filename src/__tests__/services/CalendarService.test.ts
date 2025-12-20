@@ -75,10 +75,10 @@ describe('CalendarService', () => {
       const result = await calendarService.listCalendars();
 
       expect(mockCalendarAPI.calendarList.list).toHaveBeenCalledTimes(1);
-      
-      const expectedResult = mockCalendars.map(c => ({ 
-        id: c.id, 
-        summary: c.summary 
+
+      const expectedResult = mockCalendars.map((c) => ({
+        id: c.id,
+        summary: c.summary,
       }));
       expect(JSON.parse(result.content[0].text)).toEqual(expectedResult);
     });
@@ -331,7 +331,7 @@ describe('CalendarService', () => {
       expect(mockCalendarAPI.events.list).toHaveBeenCalledWith(
         expect.objectContaining({
           timeMax: expect.any(String),
-        }),
+        })
       );
 
       expect(JSON.parse(result.content[0].text)).toEqual(mockEvents);
@@ -395,9 +395,7 @@ describe('CalendarService', () => {
           id: 'event3',
           summary: 'Meeting needs response',
           status: 'confirmed',
-          attendees: [
-            { email: 'me@example.com', self: true, responseStatus: 'needsAction' },
-          ],
+          attendees: [{ email: 'me@example.com', self: true, responseStatus: 'needsAction' }],
         },
       ];
 
@@ -429,9 +427,7 @@ describe('CalendarService', () => {
           id: 'event2',
           summary: 'Meeting with attendees',
           status: 'confirmed',
-          attendees: [
-            { email: 'me@example.com', self: true, responseStatus: 'accepted' },
-          ],
+          attendees: [{ email: 'me@example.com', self: true, responseStatus: 'accepted' }],
         },
       ];
 
@@ -514,9 +510,7 @@ describe('CalendarService', () => {
           id: 'event1',
           summary: 'Meeting',
           status: 'confirmed',
-          attendees: [
-            { email: 'me@example.com', self: true, responseStatus: 'accepted' },
-          ],
+          attendees: [{ email: 'me@example.com', self: true, responseStatus: 'accepted' }],
         },
       ];
 
@@ -548,9 +542,7 @@ describe('CalendarService', () => {
           ],
         },
         'user2@example.com': {
-          busy: [
-            { start: '2024-01-15T10:30:00Z', end: '2024-01-15T11:30:00Z' },
-          ],
+          busy: [{ start: '2024-01-15T10:30:00Z', end: '2024-01-15T11:30:00Z' }],
         },
       };
 
@@ -568,15 +560,15 @@ describe('CalendarService', () => {
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.start).toBeDefined();
       expect(parsedResult.end).toBeDefined();
-      expect(new Date(parsedResult.end).getTime() - new Date(parsedResult.start).getTime()).toBe(60 * 60 * 1000);
+      expect(new Date(parsedResult.end).getTime() - new Date(parsedResult.start).getTime()).toBe(
+        60 * 60 * 1000
+      );
     });
 
     it('should return an error if no free time is found', async () => {
       const busyData = {
         'user1@example.com': {
-          busy: [
-            { start: '2024-01-15T08:00:00Z', end: '2024-01-15T18:00:00Z' },
-          ],
+          busy: [{ start: '2024-01-15T08:00:00Z', end: '2024-01-15T18:00:00Z' }],
         },
       };
 
@@ -786,7 +778,12 @@ describe('CalendarService', () => {
       const updatedEvent = {
         ...mockEvent,
         attendees: [
-          { email: 'me@example.com', self: true, responseStatus: 'declined', comment: 'Sorry, I have a conflict' },
+          {
+            email: 'me@example.com',
+            self: true,
+            responseStatus: 'declined',
+            comment: 'Sorry, I have a conflict',
+          },
           { email: 'other@example.com', responseStatus: 'accepted' },
         ],
       };
@@ -830,13 +827,16 @@ describe('CalendarService', () => {
       const mockEvent = {
         id: 'event123',
         summary: 'Team Meeting',
-        attendees: [
-          { email: 'me@example.com', self: true, responseStatus: 'needsAction' },
-        ],
+        attendees: [{ email: 'me@example.com', self: true, responseStatus: 'needsAction' }],
       };
 
       mockCalendarAPI.events.get.mockResolvedValue({ data: mockEvent });
-      mockCalendarAPI.events.patch.mockResolvedValue({ data: { ...mockEvent, attendees: [{ ...mockEvent.attendees[0], responseStatus: 'tentative' }] } });
+      mockCalendarAPI.events.patch.mockResolvedValue({
+        data: {
+          ...mockEvent,
+          attendees: [{ ...mockEvent.attendees[0], responseStatus: 'tentative' }],
+        },
+      });
 
       const result = await calendarService.respondToEvent({
         eventId: 'event123',
@@ -908,13 +908,16 @@ describe('CalendarService', () => {
       const mockEvent = {
         id: 'event123',
         summary: 'Team Meeting',
-        attendees: [
-          { email: 'me@example.com', self: true, responseStatus: 'needsAction' },
-        ],
+        attendees: [{ email: 'me@example.com', self: true, responseStatus: 'needsAction' }],
       };
 
       mockCalendarAPI.events.get.mockResolvedValue({ data: mockEvent });
-      mockCalendarAPI.events.patch.mockResolvedValue({ data: { ...mockEvent, attendees: [{ ...mockEvent.attendees[0], responseStatus: 'accepted' }] } });
+      mockCalendarAPI.events.patch.mockResolvedValue({
+        data: {
+          ...mockEvent,
+          attendees: [{ ...mockEvent.attendees[0], responseStatus: 'accepted' }],
+        },
+      });
 
       await calendarService.respondToEvent({
         eventId: 'event123',
@@ -997,13 +1000,16 @@ describe('CalendarService', () => {
       });
 
       expect(JSON.parse(result.content[0].text)).toEqual(mockEvent);
-      });
+    });
 
     it('should handle API errors when getting an event', async () => {
       const apiError = new Error('Event not found');
       mockCalendarAPI.events.get.mockRejectedValue(apiError);
 
-      const result = await calendarService.getEvent({ eventId: 'non-existent-event', calendarId: 'primary' });
+      const result = await calendarService.getEvent({
+        eventId: 'non-existent-event',
+        calendarId: 'primary',
+      });
 
       expect(JSON.parse(result.content[0].text)).toEqual({ error: 'Event not found' });
     });

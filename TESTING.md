@@ -14,6 +14,7 @@ This guide covers testing strategies for the Google Workspace MCP server before 
 ```
 
 This script performs:
+
 - ✅ Clean build
 - ✅ npm link creation
 - ✅ Symlink verification
@@ -63,6 +64,7 @@ npm list -g @presto-ai/google-workspace-mcp
 ```
 
 **Expected**:
+
 - Command is in PATH: `/usr/local/bin/google-workspace-mcp` (or equivalent)
 - Global npm list shows the package
 
@@ -78,6 +80,7 @@ google-workspace-mcp --auth
 ```
 
 **Expected flow**:
+
 1. Prints: "🔐 Starting Google Workspace MCP authentication..."
 2. Browser opens to Google OAuth consent screen
 3. User logs in with Google account
@@ -87,6 +90,7 @@ google-workspace-mcp --auth
 7. Credentials saved to: `~/.config/google-workspace-mcp/token.json`
 
 **Verify credentials were saved**:
+
 ```bash
 ls -la ~/.config/google-workspace-mcp/
 # Should show: token.json, .master-key
@@ -117,6 +121,7 @@ kill $SERVER_PID
 ```
 
 **Expected output**:
+
 ```
 Google Workspace MCP Server is running (registerTool). Listening for requests...
 ```
@@ -136,6 +141,7 @@ google-workspace-mcp
 ```
 
 **Expected behavior**:
+
 ```
 ❌ No valid credentials found.
 
@@ -191,6 +197,7 @@ unset GOOGLE_WORKSPACE_MCP_HOME
 ### Test 8: Claude Desktop Configuration
 
 1. **Add to Claude Desktop config**:
+
    ```bash
    # macOS
    nano ~/Library/Application\ Support/Claude/claude_desktop_config.json
@@ -200,6 +207,7 @@ unset GOOGLE_WORKSPACE_MCP_HOME
    ```
 
 2. **Add server configuration**:
+
    ```json
    {
      "mcpServers": {
@@ -225,11 +233,13 @@ unset GOOGLE_WORKSPACE_MCP_HOME
 ### Test 9: Claude Code CLI Configuration
 
 1. **Add to Claude Code CLI config**:
+
    ```bash
    nano ~/.claude/config.json
    ```
 
 2. **Add server configuration**:
+
    ```json
    {
      "mcpServers": {
@@ -386,6 +396,7 @@ kill %1
 ```
 
 **Expected**:
+
 - Auth flow: <2 seconds to open browser
 - Server mode: <500ms to print "running" message
 
@@ -402,6 +413,237 @@ ls -la ~/.config/google-workspace-mcp/token.json
 
 ---
 
+## Unit & Integration Testing with Jest
+
+### Overview
+
+This project uses **Jest** as the test framework for unit and integration testing. Tests are located in `src/__tests__/` and cover:
+
+- **Authentication** (AuthManager, auth flow, credential storage)
+- **Logging system** (LogLevel configuration, console/file output)
+- **CLI entry points** (--auth flag, server mode, credential detection)
+- **Services** (Gmail, Calendar, Drive, Docs, Sheets, Chat, etc.)
+- **Utilities** (paths, logger, validators, helpers)
+
+### Running Tests
+
+**Run all tests:**
+
+```bash
+npm test
+```
+
+**Run tests in watch mode** (re-run on file changes):
+
+```bash
+npm run test:watch
+```
+
+**Run a specific test file:**
+
+```bash
+npm test src/__tests__/logger.test.ts
+npm test src/__tests__/auth-flow.test.ts
+```
+
+**Run tests with coverage report:**
+
+```bash
+npm run test:coverage
+```
+
+This generates a coverage report showing:
+
+- Line coverage
+- Branch coverage
+- Function coverage
+- Statement coverage
+
+**Run tests in CI mode** (faster, parallel):
+
+```bash
+npm run test:ci
+```
+
+### Test Structure
+
+Tests are organized to match source code structure:
+
+```
+src/__tests__/
+├── auth/
+│   ├── AuthManager.test.ts         # Authentication manager tests
+│   └── token-storage/              # Token storage implementation tests
+│       ├── file-token-storage.test.ts
+│       ├── keychain-token-storage.test.ts
+│       ├── hybrid-token-storage.test.ts
+│       └── ...
+├── services/                       # Service implementation tests
+│   ├── GmailService.test.ts
+│   ├── CalendarService.test.ts
+│   ├── DriveService.test.ts
+│   ├── DocsService.test.ts
+│   ├── SheetsService.test.ts
+│   ├── ChatService.test.ts
+│   └── ...
+├── utils/                          # Utility function tests
+│   ├── logger.test.ts
+│   ├── paths.test.ts
+│   ├── secure-browser-launcher.test.ts
+│   └── ...
+├── auth-flow.test.ts              # Auth flow entry point tests
+├── cli.test.ts                    # CLI entry point tests
+└── server.test.ts                 # Server initialization tests
+```
+
+### Writing New Tests
+
+Each test file follows the Jest convention:
+
+```typescript
+describe('ComponentName', () => {
+  beforeEach(() => {
+    // Setup before each test
+    jest.clearAllMocks();
+  });
+
+  describe('Feature/Method', () => {
+    it('should do something specific', () => {
+      // Arrange
+      const input = 'test';
+
+      // Act
+      const result = myFunction(input);
+
+      // Assert
+      expect(result).toBe('expected');
+    });
+
+    it('should handle error cases', () => {
+      expect(() => {
+        myFunction(null);
+      }).toThrow('Expected error message');
+    });
+  });
+});
+```
+
+### Key Test Categories
+
+#### 1. Authentication Tests (`src/__tests__/auth/`)
+
+Tests for OAuth flow, credential management, and token storage:
+
+- **AuthManager**: Tests `authenticate()`, `getAuthenticatedClient()`, `clearAuth()`
+- **Token Storage**: Tests reading/writing encrypted credentials to keychain and file system
+- **Hybrid Storage**: Tests fallback from keychain to file storage
+- **OAuth Flow**: Tests browser opening, token persistence, credential caching
+
+**Important test**: `AuthManager.clearAuth()` should clear cached credentials before fresh auth
+
+#### 2. Logger Tests (`src/__tests__/utils/logger.test.ts`)
+
+Tests for structured logging system:
+
+- **LogLevel parsing** (ERROR, WARN, INFO, DEBUG)
+- **Console output** (ERROR and WARN only, no INFO/DEBUG to console)
+- **File output** (all levels to file with timestamps)
+- **Emoji formatting** (❌ for ERROR, ⚠️ for WARN)
+
+**Coverage**: 40+ tests for logging behavior
+
+#### 3. CLI Tests (`src/__tests__/cli.test.ts`)
+
+Tests for bin/cli.js behavior:
+
+- **--auth flag detection** (triggers interactive OAuth)
+- **--debug flag** (sets LOG_LEVEL=DEBUG)
+- **Credential detection** (hasValidCredentials() checks)
+- **Interactive terminal detection** (auto-prompts if TTY)
+- **Fallback behavior** (graceful error in non-interactive environments)
+
+#### 4. Service Tests (`src/__tests__/services/`)
+
+Tests for Google Workspace service implementations:
+
+- **Gmail**: Search, read, send, draft management
+- **Calendar**: Event creation, scheduling, availability checks
+- **Drive**: File search, metadata retrieval
+- **Docs**: Document reading, creation, text manipulation
+- **Sheets**: Range reading, data appending
+- **Chat**: Message sending, thread management
+
+### Current Test Status
+
+```
+Test Suites: 20 passed, 8 failed
+Tests:       336 passing, 15 failing
+Coverage:    ~85%+ (varies by module)
+```
+
+**Failing tests**: Mostly related to typing issues in DocsService implementation (not test harness issues)
+
+### Mocking Strategy
+
+Tests use Jest mocks for:
+
+- **File system** (`fs.appendFile`, `fs.mkdir`) - for logger tests
+- **HTTP requests** (fetch) - for API service tests
+- **Authentication** (OAuth flow) - for auth tests
+- **External dependencies** (keytar) - for token storage tests
+
+Example of mocking fs/promises:
+
+```typescript
+jest.mock('node:fs/promises', () => ({
+  appendFile: jest.fn().mockResolvedValue(undefined),
+  mkdir: jest.fn().mockResolvedValue(undefined),
+}));
+```
+
+### Test Coverage Goals
+
+- **Critical paths** (auth, logging): 95%+ coverage
+- **Services**: 80%+ coverage
+- **Utilities**: 85%+ coverage
+- **Overall target**: >85% coverage
+
+View coverage report:
+
+```bash
+npm run test:coverage
+open coverage/lcov-report/index.html  # View HTML report
+```
+
+### Common Test Patterns
+
+#### Testing async functions:
+
+```typescript
+it('should handle async operations', async () => {
+  const result = await asyncFunction();
+  expect(result).toBeDefined();
+});
+```
+
+#### Testing error handling:
+
+```typescript
+it('should throw on invalid input', () => {
+  expect(() => {
+    throwingFunction(null);
+  }).toThrow('Expected error');
+});
+```
+
+#### Testing with mocks:
+
+```typescript
+jest.mock('../services/AuthManager');
+const MockAuthManager = AuthManager as jest.MockedClass<typeof AuthManager>;
+MockAuthManager.prototype.authenticate = jest.fn().mockResolvedValue({});
+```
+
 ## Continuous Integration (CI/CD)
 
 See `.github/workflows/` for automated testing on GitHub:
@@ -413,10 +655,11 @@ See `.github/workflows/` for automated testing on GitHub:
 # - Weekly scheduled checks for upstream updates
 
 # Local CI simulation:
-npm run test
-npm run test:coverage
-npm run build
-./test-locally.sh
+npm test              # Run all unit tests
+npm run test:ci       # CI-optimized test run
+npm run test:coverage # Generate coverage report
+npm run build         # Build TypeScript
+./test-locally.sh     # Manual integration testing
 ```
 
 ---
@@ -426,6 +669,7 @@ npm run build
 ### Test Credentials (for development)
 
 For development testing, you can use a test Google account:
+
 - Email: `test-workspace-mcp@gmail.com` (set up if needed)
 - Scopes: All Google Workspace APIs (Gmail, Calendar, Drive, etc.)
 

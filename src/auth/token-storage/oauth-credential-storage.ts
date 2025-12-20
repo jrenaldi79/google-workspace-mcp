@@ -12,39 +12,32 @@ const KEYCHAIN_SERVICE_NAME = 'gemini-cli-workspace-oauth';
 const MAIN_ACCOUNT_KEY = 'main-account';
 
 export class OAuthCredentialStorage {
-  private static storage: HybridTokenStorage = new HybridTokenStorage(
-    KEYCHAIN_SERVICE_NAME,
-  );
+  private static storage: HybridTokenStorage = new HybridTokenStorage(KEYCHAIN_SERVICE_NAME);
 
   /**
    * Load cached OAuth credentials
    */
   static async loadCredentials(): Promise<Credentials | null> {
-    try {
-      const credentials = await this.storage.getCredentials(MAIN_ACCOUNT_KEY);
+    const credentials = await this.storage.getCredentials(MAIN_ACCOUNT_KEY);
 
-      if (credentials?.token) {
-        const { accessToken, refreshToken, expiresAt, tokenType, scope } =
-          credentials.token;
-        // Convert from OAuthCredentials format to Google Credentials format
-        const googleCreds: Credentials = {
-          access_token: accessToken,
-          refresh_token: refreshToken || undefined,
-          token_type: tokenType || undefined,
-          scope: scope || undefined,
-        };
+    if (credentials?.token) {
+      const { accessToken, refreshToken, expiresAt, tokenType, scope } = credentials.token;
+      // Convert from OAuthCredentials format to Google Credentials format
+      const googleCreds: Credentials = {
+        access_token: accessToken,
+        refresh_token: refreshToken || undefined,
+        token_type: tokenType || undefined,
+        scope: scope || undefined,
+      };
 
-        if (expiresAt) {
-          googleCreds.expiry_date = expiresAt;
-        }
-
-        return googleCreds;
+      if (expiresAt) {
+        googleCreds.expiry_date = expiresAt;
       }
 
-      return null;
-    } catch (error: unknown) {
-      throw error;
+      return googleCreds;
     }
+
+    return null;
   }
 
   /**
@@ -71,10 +64,6 @@ export class OAuthCredentialStorage {
    * Clear cached OAuth credentials
    */
   static async clearCredentials(): Promise<void> {
-    try {
-      await this.storage.deleteCredentials(MAIN_ACCOUNT_KEY);
-    } catch (error: unknown) {
-      throw error;
-    }
+    await this.storage.deleteCredentials(MAIN_ACCOUNT_KEY);
   }
 }

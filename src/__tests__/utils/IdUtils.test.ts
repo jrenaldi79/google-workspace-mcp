@@ -102,7 +102,8 @@ describe('IdUtils', () => {
     });
 
     it('should extract document ID from a complex URL with resourcekey', () => {
-      const url = 'https://docs.google.com/document/d/1MGqTbt5joTs40QS-YZTP9QH1-TxQ5tij7RgXPFWMPiI/edit?resourcekey=0-X_p2TPxpk0visLTHHMF7Yg&tab=t.0';
+      const url =
+        'https://docs.google.com/document/d/1MGqTbt5joTs40QS-YZTP9QH1-TxQ5tij7RgXPFWMPiI/edit?resourcekey=0-X_p2TPxpk0visLTHHMF7Yg&tab=t.0';
       const result = extractDocId(url);
       expect(result).toBe('1MGqTbt5joTs40QS-YZTP9QH1-TxQ5tij7RgXPFWMPiI');
     });

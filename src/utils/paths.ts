@@ -31,7 +31,7 @@ function getConfigDirectory(): string {
     case 'win32':
       return path.join(
         process.env.APPDATA || path.join(homeDir, 'AppData', 'Roaming'),
-        'google-workspace-mcp',
+        'google-workspace-mcp'
       );
     case 'darwin':
     case 'linux':

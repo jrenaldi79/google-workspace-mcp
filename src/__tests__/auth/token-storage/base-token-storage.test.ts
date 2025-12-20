@@ -40,8 +40,6 @@ class TestTokenStorage extends BaseTokenStorage {
     super.validateCredentials(credentials);
   }
 
-
-
   override sanitizeServerName(serverName: string): string {
     return super.sanitizeServerName(serverName);
   }
@@ -91,9 +89,7 @@ describe('BaseTokenStorage', () => {
         updatedAt: Date.now(),
       } as OAuthCredentials;
 
-      expect(() => storage.validateCredentials(credentials)).toThrow(
-        'Server name is required',
-      );
+      expect(() => storage.validateCredentials(credentials)).toThrow('Server name is required');
     });
 
     it('should throw for missing token', () => {
@@ -103,9 +99,7 @@ describe('BaseTokenStorage', () => {
         updatedAt: Date.now(),
       } as OAuthCredentials;
 
-      expect(() => storage.validateCredentials(credentials)).toThrow(
-        'Token is required',
-      );
+      expect(() => storage.validateCredentials(credentials)).toThrow('Token is required');
     });
 
     it('should throw for missing access token and refresh token', () => {
@@ -119,7 +113,7 @@ describe('BaseTokenStorage', () => {
       } as OAuthCredentials;
 
       expect(() => storage.validateCredentials(credentials)).toThrow(
-        'Access token or refresh token is required',
+        'Access token or refresh token is required'
       );
     });
 
@@ -133,31 +127,21 @@ describe('BaseTokenStorage', () => {
         updatedAt: Date.now(),
       } as OAuthCredentials;
 
-      expect(() => storage.validateCredentials(credentials)).toThrow(
-        'Token type is required',
-      );
+      expect(() => storage.validateCredentials(credentials)).toThrow('Token type is required');
     });
   });
 
-
-
   describe('sanitizeServerName', () => {
     it('should keep valid characters', () => {
-      expect(storage.sanitizeServerName('test-server.example_123')).toBe(
-        'test-server.example_123',
-      );
+      expect(storage.sanitizeServerName('test-server.example_123')).toBe('test-server.example_123');
     });
 
     it('should replace invalid characters with underscore', () => {
-      expect(storage.sanitizeServerName('test@server#example')).toBe(
-        'test_server_example',
-      );
+      expect(storage.sanitizeServerName('test@server#example')).toBe('test_server_example');
     });
 
     it('should handle special characters', () => {
-      expect(storage.sanitizeServerName('test server/example:123')).toBe(
-        'test_server_example_123',
-      );
+      expect(storage.sanitizeServerName('test server/example:123')).toBe('test_server_example_123');
     });
   });
 });

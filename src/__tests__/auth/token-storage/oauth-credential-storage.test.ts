@@ -74,9 +74,7 @@ describe('OAuthCredentialStorage', () => {
     it('should throw an error if loading fails', async () => {
       getCredentialsMock.mockRejectedValue(new Error('Storage error'));
 
-      await expect(OAuthCredentialStorage.loadCredentials()).rejects.toThrow(
-        'Storage error',
-      );
+      await expect(OAuthCredentialStorage.loadCredentials()).rejects.toThrow('Storage error');
     });
   });
 
@@ -102,9 +100,7 @@ describe('OAuthCredentialStorage', () => {
     it('should throw an error if clearing from HybridTokenStorage fails', async () => {
       deleteCredentialsMock.mockRejectedValue(new Error('Clear error'));
 
-      await expect(OAuthCredentialStorage.clearCredentials()).rejects.toThrow(
-        'Clear error',
-      );
+      await expect(OAuthCredentialStorage.clearCredentials()).rejects.toThrow('Clear error');
     });
   });
 });
