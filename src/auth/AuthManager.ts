@@ -155,8 +155,15 @@ export class AuthManager {
         }
 
         const webLogin = await this.authWithWeb(oAuth2Client);
-        await open(webLogin.authUrl);
-        console.log('Waiting for authentication...');
+        console.error('\n[AUTH] About to call open() with URL:', webLogin.authUrl.substring(0, 50) + '...');
+        try {
+            const result = await open(webLogin.authUrl);
+            console.error('[AUTH] open() returned:', result);
+        } catch (openError) {
+            console.error('[AUTH] open() threw error:', openError);
+            throw openError;
+        }
+        console.error('[AUTH] Waiting for authentication...');
 
         // Add timeout to prevent infinite waiting when browser tab gets stuck
         const authTimeout = 5 * 60 * 1000; // 5 minutes timeout
