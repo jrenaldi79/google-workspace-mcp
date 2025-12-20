@@ -18,6 +18,8 @@
     "build": "node esbuild.config.js && npm run build:bin",
     "build:bin": "chmod +x bin/cli.js",
     "build:auth-utils": "node esbuild.auth-utils.js",
+    "validate:publish": "bash scripts/validate-publish.sh",
+    "prepublish": "npm run validate:publish",
     "prepublishOnly": "npm run build",
     "prepare": "husky"
   },
