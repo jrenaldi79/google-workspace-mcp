@@ -166,18 +166,22 @@ export class AuthManager {
         console.error('[AUTH] Waiting for authentication...');
 
         // Add timeout to prevent infinite waiting when browser tab gets stuck
-        const authTimeout = 5 * 60 * 1000; // 5 minutes timeout
+        const authTimeout = 30 * 1000; // 30 second timeout (reduced from 5 minutes for debugging)
         const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
             reject(
             new Error(
-                'Authentication timed out after 5 minutes. The browser tab may have gotten stuck in a loading state. ' +
-                'Please try again.',
+                'Authentication timed out after 30 seconds. No OAuth callback received. ' +
+                'The browser may not have opened successfully. ' +
+                'Please check that a browser window opened and you completed the OAuth flow. ' +
+                'If no browser opened, try opening this URL manually in your browser.',
             ),
             );
         }, authTimeout);
         });
+        console.error('[AUTH] Waiting for OAuth callback (30 second timeout)...');
         await Promise.race([webLogin.loginCompletePromise, timeoutPromise]);
+        console.error('[AUTH] OAuth callback received successfully');
 
         await OAuthCredentialStorage.saveCredentials(oAuth2Client.credentials);
         this.client = oAuth2Client;
