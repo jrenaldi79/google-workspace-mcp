@@ -10,9 +10,15 @@ import type { OAuthCredentials } from './types';
 
 interface Keytar {
   getPassword(service: string, account: string): Promise<string | null>;
-  setPassword(service: string, account: string, password: string): Promise<void>;
+  setPassword(
+    service: string,
+    account: string,
+    password: string,
+  ): Promise<void>;
   deletePassword(service: string, account: string): Promise<boolean>;
-  findCredentials(service: string): Promise<Array<{ account: string; password: string }>>;
+  findCredentials(
+    service: string,
+  ): Promise<Array<{ account: string; password: string }>>;
 }
 
 const KEYCHAIN_TEST_PREFIX = '__keychain_test__';
@@ -36,6 +42,7 @@ export class KeychainTokenStorage extends BaseTokenStorage {
       const module = await import(moduleName);
       this.keytarModule = module.default || module;
     } catch (error) {
+      
       console.error(error);
     }
     return this.keytarModule;
@@ -60,6 +67,8 @@ export class KeychainTokenStorage extends BaseTokenStorage {
       }
 
       const credentials = JSON.parse(data) as OAuthCredentials;
+
+
 
       return credentials;
     } catch (error) {
@@ -103,7 +112,10 @@ export class KeychainTokenStorage extends BaseTokenStorage {
     }
 
     const sanitizedName = this.sanitizeServerName(serverName);
-    const deleted = await keytar.deletePassword(this.serviceName, sanitizedName);
+    const deleted = await keytar.deletePassword(
+      this.serviceName,
+      sanitizedName,
+    );
 
     if (!deleted) {
       throw new Error(`No credentials found for ${serverName}`);
@@ -143,9 +155,9 @@ export class KeychainTokenStorage extends BaseTokenStorage {
 
     const result = new Map<string, OAuthCredentials>();
     try {
-      const credentials = (await keytar.findCredentials(this.serviceName)).filter(
-        (c) => !c.account.startsWith(KEYCHAIN_TEST_PREFIX)
-      );
+      const credentials = (
+        await keytar.findCredentials(this.serviceName)
+      ).filter((c) => !c.account.startsWith(KEYCHAIN_TEST_PREFIX));
 
       for (const cred of credentials) {
         try {
@@ -153,7 +165,10 @@ export class KeychainTokenStorage extends BaseTokenStorage {
           this.validateCredentials(data);
           result.set(cred.account, data);
         } catch (error) {
-          console.error(`Failed to parse credentials for ${cred.account}:`, error);
+          console.error(
+            `Failed to parse credentials for ${cred.account}:`,
+            error,
+          );
         }
       }
     } catch (error) {
@@ -173,7 +188,9 @@ export class KeychainTokenStorage extends BaseTokenStorage {
           .findCredentials(this.serviceName)
           .then((creds) => creds.map((c) => c.account))
           .catch((error: Error) => {
-            throw new Error(`Failed to list servers for clearing: ${error.message}`);
+            throw new Error(
+              `Failed to list servers for clearing: ${error.message}`,
+            );
           })
       : [];
     const errors: Error[] = [];
@@ -188,7 +205,7 @@ export class KeychainTokenStorage extends BaseTokenStorage {
 
     if (errors.length > 0) {
       throw new Error(
-        `Failed to clear some credentials: ${errors.map((e) => e.message).join(', ')}`
+        `Failed to clear some credentials: ${errors.map((e) => e.message).join(', ')}`,
       );
     }
   }
@@ -212,13 +229,15 @@ export class KeychainTokenStorage extends BaseTokenStorage {
 
       await keytar.setPassword(this.serviceName, testAccount, testPassword);
       const retrieved = await keytar.getPassword(this.serviceName, testAccount);
-      const deleted = await keytar.deletePassword(this.serviceName, testAccount);
+      const deleted = await keytar.deletePassword(
+        this.serviceName,
+        testAccount,
+      );
 
       const success = deleted && retrieved === testPassword;
       this.keychainAvailable = success;
       return success;
-    } catch (_) {
-      void _;
+    } catch (_error) {
       this.keychainAvailable = false;
       return false;
     }

@@ -11,11 +11,11 @@ const fs = require('node:fs');
 async function build() {
   try {
     await esbuild.build({
-      entryPoints: ['src/index.ts', 'src/auth-flow.ts'],
+      entryPoints: ['src/index.ts'],
       bundle: true,
       platform: 'node',
       target: 'node16',
-      outdir: 'dist',
+      outfile: 'dist/index.js',
       minify: true,
       sourcemap: true,
       // Replace 'open' package with our wrapper

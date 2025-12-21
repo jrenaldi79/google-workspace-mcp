@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OAuthCredentials, TokenStorage } from './types';
+import {
+  OAuthCredentials,
+  TokenStorage
+} from './types';
 
 export abstract class BaseTokenStorage implements TokenStorage {
   protected readonly serviceName: string;
@@ -34,6 +37,8 @@ export abstract class BaseTokenStorage implements TokenStorage {
       throw new Error('Token type is required');
     }
   }
+
+
 
   protected sanitizeServerName(serverName: string): string {
     return serverName.replace(/[^a-zA-Z0-9-_.]/g, '_');
