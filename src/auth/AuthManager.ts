@@ -13,11 +13,11 @@ import { logToFile } from '../utils/logger';
 import open from '../utils/open-wrapper';
 import { shouldLaunchBrowser } from '../utils/secure-browser-launcher';
 import { OAuthCredentialStorage } from './token-storage/oauth-credential-storage';
+import { loadConfig } from '../utils/config';
 
-// The Client ID for the OAuth flow.
-// The secret is handled by the cloud function, not in the client.
-const CLIENT_ID =
-  '338689075775-o75k922vn5fdl18qergr96rp8g63e4d7.apps.googleusercontent.com';
+const config = loadConfig();
+const CLIENT_ID = config.clientId;
+const CLOUD_FUNCTION_URL = config.cloudFunctionUrl;
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -225,18 +225,15 @@ export class AuthManager {
 
       // Call the cloud function refresh endpoint
       // The cloud function has the client secret needed for token refresh
-      const response = await fetch(
-        'https://google-workspace-extension.geminicli.com/refreshToken',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            refresh_token: currentCredentials.refresh_token,
-          }),
+      const response = await fetch(`${CLOUD_FUNCTION_URL}/refreshToken`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          refresh_token: currentCredentials.refresh_token,
+        }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -318,8 +315,7 @@ export class AuthManager {
     const state = Buffer.from(JSON.stringify(statePayload)).toString('base64');
 
     // The redirect URI for Google's auth server is the cloud function
-    const cloudFunctionRedirectUri =
-      'https://google-workspace-extension.geminicli.com';
+    const cloudFunctionRedirectUri = CLOUD_FUNCTION_URL;
 
     const authUrl = client.generateAuthUrl({
       redirect_uri: cloudFunctionRedirectUri, // Tell Google to go to the cloud function
